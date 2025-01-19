@@ -11,7 +11,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             height: 100vh;
             background-color: #f0f0f0;
         }
@@ -69,7 +69,7 @@
             width: 80%;
             border: 2px dashed #ccc;
             background: white;
-            margin-bottom: 20px;
+            margin-top: 20px;
             position: relative;
         }
 
@@ -261,6 +261,7 @@
             newEmojiBox.style.top = `${event.clientY - 25}px`;
             newEmojiBox.setAttribute('draggable', 'true');
             newEmojiBox.addEventListener('dragstart', dragStart);
+            newEmojiBox.addEventListener('dragend', checkCombination);
             document.getElementById('workspace').appendChild(newEmojiBox);
         });
 
@@ -268,8 +269,35 @@
             event.dataTransfer.setData('text', event.target.textContent);
         }
 
+        function checkCombination() {
+            const workspace = document.getElementById('workspace');
+            const emojiBoxes = workspace.querySelectorAll('.emoji-box');
+            if (emojiBoxes.length >= 2) {
+                const emoji1 = emojiBoxes[0].textContent;
+                const emoji2 = emojiBoxes[1].textContent;
+                const combined = combineEmojis(emoji1, emoji2);
+
+                if (!discoveries.includes(combined)) {
+                    discoveries.push(combined);
+                    inventory.push(combined);
+                    localStorage.setItem('inventory', JSON.stringify(inventory));
+                    localStorage.setItem('discoveries', JSON.stringify(discoveries));
+                    alert(`New discovery: ${combined}`);
+                }
+
+                emojiBoxes.forEach(box => box.remove());
+                updateInventoryDisplay();
+            }
+        }
+
         function combineEmojis(emoji1, emoji2) {
-            return emoji1 + emoji2; // Simplified combination logic
+            if ((emoji1 === '💀' && emoji2 === '😭') || (emoji1 === '😭' && emoji2 === '💀')) {
+                return '💀😭'; // Crying Skull Emoji
+            } else if ((emoji1 === '💀' && emoji2 === '😂') || (emoji1 === '😂' && emoji2 === '💀')) {
+                return '💀😂'; // Laughing Skull Emoji
+            } else {
+                return emoji1 + emoji2; // Default combination
+            }
         }
 
         function openDevTools() {
@@ -295,48 +323,5 @@
             if (emojiName && !inventory.includes(emojiName)) {
                 inventory.push(emojiName);
                 localStorage.setItem('inventory', JSON.stringify(inventory));
-                alert(`Emoji ${emojiName} created and added to inventory!`);
-                updateInventoryDisplay();
-            }
-        }
+                alert(`Emoji ${emojiName} created and added
 
-        function viewDiscoveries() {
-            alert(`Your discoveries: ${discoveries.join(', ')}`);
-        }
-
-        function emojiLookup() {
-            const search = prompt("Enter emoji to look up:");
-            if (discoveries.includes(search)) {
-                alert(`${search} has already been discovered.`);
-            } else {
-                alert(`${search} has not been discovered yet.`);
-            }
-        }
-
-        function openAuthModal() {
-            document.getElementById('auth-modal').style.display = 'block';
-        }
-
-        function closeAuthModal() {
-            document.getElementById('auth-modal').style.display = 'none';
-        }
-
-        function authenticateUser() {
-            const username = document.getElementById('auth-username').value;
-            const password = document.getElementById('auth-password').value;
-            const captcha = document.getElementById('auth-captcha').value;
-
-            if (!username || !password || captcha !== '1234') {
-                alert('Invalid input or CAPTCHA');
-                return;
-            }
-
-            localStorage.setItem('currentUser', username);
-            alert(`Welcome, ${username}!`);
-            closeAuthModal();
-        }
-
-        updateInventoryDisplay();
-    </script>
-</body>
-</html>
