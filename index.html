@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Craft</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .inventory {
+            position: absolute;
+            right: 10px;
+            top: 50px;
+            width: 150px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .inventory h2 {
+            font-size: 1rem;
+            margin: 0 0 10px;
+        }
+
+        .inventory .emoji {
+            font-size: 2rem;
+            cursor: grab;
+            margin: 5px 0;
+        }
+
+        .workspace {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            width: 80%;
+            border: 2px dashed #ccc;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        .settings {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .settings button {
+            display: block;
+            margin: 5px 0;
+            padding: 5px;
+            width: 100%;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        #dev-tools-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #dev-tools-popup input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+        }
+
+        #dev-tools-popup button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Emoji Craft</h1>
+    </header>
+
+    <div class="workspace" id="workspace">
+        <p>Drag and drop emojis here to combine them!</p>
+    </div>
+
+    <div class="inventory" id="inventory">
+        <h2>Inventory</h2>
+        <div class="emoji" draggable="true">💀</div>
+        <div class="emoji" draggable="true">😂</div>
+        <div class="emoji" draggable="true">😭</div>
+    </div>
+
+    <div class="settings">
+        <button onclick="viewByInventory()">View by Top of Inventory</button>
+        <button onclick="openDevTools()">Dev Tools</button>
+        <button onclick="viewDiscoveries()">Discoveries</button>
+        <button onclick="emojiLookup()">Emoji Lookup</button>
+    </div>
+
+    <div id="dev-tools-popup">
+        <input type="password" id="dev-passcode" placeholder="Enter passcode">
+        <button onclick="accessDevTools()">Submit</button>
+        <input type="text" id="dev-emoji-name" placeholder="Enter emoji name" style="display: none;">
+        <button onclick="createEmoji()" style="display: none;">Create Emoji</button>
+    </div>
+
+    <script>
+        const inventory = ["💀", "😂", "😭"];
+        const discoveries = [];
+
+        document.querySelectorAll('.emoji').forEach(emoji => {
+            emoji.addEventListener('dragstart', dragStart);
+        });
+
+        document.getElementById('workspace').addEventListener('dragover', event => {
+            event.preventDefault();
+        });
+
+        document.getElementById('workspace').addEventListener('drop', event => {
+            event.preventDefault();
+            const draggedEmoji = event.dataTransfer.getData('text');
+            const newEmoji = combineEmojis(draggedEmoji, draggedEmoji); // Replace with actual combination logic
+            if (!discoveries.includes(newEmoji)) {
+                discoveries.push(newEmoji);
+                alert(`You discovered a new emoji: ${newEmoji}`);
+            }
+        });
+
+        function dragStart(event) {
+            event.dataTransfer.setData('text', event.target.textContent);
+        }
+
+        function combineEmojis(emoji1, emoji2) {
+            return emoji1 + emoji2; // Simplified combination logic
+        }
+
+        function viewByInventory() {
+            alert("View by top of inventory clicked!");
+        }
+
+        function openDevTools() {
+            document.getElementById('dev-tools-popup').style.display = 'block';
+        }
+
+        function accessDevTools() {
+            const passcode = document.getElementById('dev-passcode').value;
+            if (passcode === 'DEVCODE--EMJCRT') {
+                document.getElementById('dev-emoji-name').style.display = 'block';
+                document.querySelector('#dev-tools-popup button:last-of-type').style.display = 'block';
+            } else {
+                alert('Incorrect passcode');
+            }
+        }
+
+        function createEmoji() {
+            const emojiName = document.getElementById('dev-emoji-name').value;
+            if (emojiName && !inventory.includes(emojiName)) {
+                inventory.push(emojiName);
+                alert(`Emoji ${emojiName} created and added to inventory!`);
+            }
+        }
+
+        function viewDiscoveries() {
+            alert(`Your discoveries: ${discoveries.join(', ')}`);
+        }
+
+        function emojiLookup() {
+            const search = prompt("Enter emoji to look up:");
+            if (discoveries.includes(search)) {
+                alert(`${search} has already been discovered.`);
+            } else {
+                alert(`${search} has not been discovered yet.`);
+            }
+        }
+    </script>
+</body>
+</html>
