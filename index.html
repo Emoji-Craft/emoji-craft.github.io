@@ -61,6 +61,12 @@
             border: 2px dashed #ccc;
             background: white;
             margin-bottom: 20px;
+            position: relative;
+        }
+
+        .workspace .emoji {
+            position: absolute;
+            font-size: 2rem;
         }
 
         .settings {
@@ -129,7 +135,6 @@
     </div>
 
     <div class="settings">
-        <button onclick="viewByInventory()">View by Top of Inventory</button>
         <button onclick="openDevTools()">Dev Tools</button>
         <button onclick="viewDiscoveries()">Discoveries</button>
         <button onclick="emojiLookup()">Emoji Lookup</button>
@@ -158,10 +163,22 @@
         document.getElementById('workspace').addEventListener('drop', event => {
             event.preventDefault();
             const draggedEmoji = event.dataTransfer.getData('text');
-            const newEmoji = combineEmojis(draggedEmoji, draggedEmoji); // Replace with actual combination logic
-            if (!discoveries.includes(newEmoji)) {
-                discoveries.push(newEmoji);
-                alert(`You discovered a new emoji: ${newEmoji}`);
+            const dropX = event.clientX;
+            const dropY = event.clientY;
+
+            const newEmojiElement = document.createElement('div');
+            newEmojiElement.textContent = draggedEmoji;
+            newEmojiElement.classList.add('emoji');
+            newEmojiElement.style.left = `${dropX}px`;
+            newEmojiElement.style.top = `${dropY}px`;
+
+            document.getElementById('workspace').appendChild(newEmojiElement);
+            newEmojiElement.addEventListener('dragstart', dragStart);
+
+            const combinedEmoji = combineEmojis(draggedEmoji, draggedEmoji); // Replace with actual combination logic
+            if (!discoveries.includes(combinedEmoji)) {
+                discoveries.push(combinedEmoji);
+                alert(`You discovered a new emoji: ${combinedEmoji}`);
             }
         });
 
@@ -171,10 +188,6 @@
 
         function combineEmojis(emoji1, emoji2) {
             return emoji1 + emoji2; // Simplified combination logic
-        }
-
-        function viewByInventory() {
-            alert("View by top of inventory clicked!");
         }
 
         function openDevTools() {
