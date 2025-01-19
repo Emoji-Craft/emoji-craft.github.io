@@ -19,8 +19,11 @@
         header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 20px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
@@ -28,10 +31,16 @@
             margin: 0;
         }
 
+        header button {
+            font-size: 1rem;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
         .inventory {
             position: absolute;
             right: 10px;
-            top: 50px;
+            top: 70px;
             width: 150px;
             height: 300px;
             overflow-y: auto;
@@ -64,9 +73,17 @@
             position: relative;
         }
 
-        .workspace .emoji {
+        .workspace .emoji-box {
             position: absolute;
-            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 5px;
+            cursor: grab;
         }
 
         .settings {
@@ -116,11 +133,60 @@
             color: white;
             margin-top: 10px;
         }
+
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        footer a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        #auth-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #auth-modal input {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+        }
+
+        #auth-modal button {
+            width: 100%;
+        }
+
+        #auth-modal .close-button {
+            background: red;
+            color: white;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Emoji Craft</h1>
+        <button onclick="openAuthModal()">Login / Sign Up</button>
     </header>
 
     <div class="workspace" id="workspace">
@@ -148,9 +214,34 @@
         <button class="close-button" onclick="closeDevTools()">Close</button>
     </div>
 
+    <div id="auth-modal">
+        <input type="text" id="auth-username" placeholder="Username">
+        <input type="password" id="auth-password" placeholder="Password">
+        <input type="text" id="auth-captcha" placeholder="Enter CAPTCHA">
+        <button onclick="authenticateUser()">Submit</button>
+        <button class="close-button" onclick="closeAuthModal()">Close</button>
+    </div>
+
+    <footer>
+        <a href="https://emoji-craft.github.io/about.html">About</a>
+    </footer>
+
     <script>
-        const inventory = ["💀", "😂", "😭"];
-        const discoveries = [];
+        const inventory = JSON.parse(localStorage.getItem('inventory')) || ["💀", "😂", "😭"];
+        const discoveries = JSON.parse(localStorage.getItem('discoveries')) || [];
+
+        function updateInventoryDisplay() {
+            const inventoryElement = document.getElementById('inventory');
+            inventoryElement.innerHTML = '<h2>Inventory</h2>';
+            inventory.forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.textContent = emoji;
+                emojiElement.className = 'emoji';
+                emojiElement.setAttribute('draggable', 'true');
+                emojiElement.addEventListener('dragstart', dragStart);
+                inventoryElement.appendChild(emojiElement);
+            });
+        }
 
         document.querySelectorAll('.emoji').forEach(emoji => {
             emoji.addEventListener('dragstart', dragStart);
@@ -163,23 +254,14 @@
         document.getElementById('workspace').addEventListener('drop', event => {
             event.preventDefault();
             const draggedEmoji = event.dataTransfer.getData('text');
-            const dropX = event.clientX;
-            const dropY = event.clientY;
-
-            const newEmojiElement = document.createElement('div');
-            newEmojiElement.textContent = draggedEmoji;
-            newEmojiElement.classList.add('emoji');
-            newEmojiElement.style.left = `${dropX}px`;
-            newEmojiElement.style.top = `${dropY}px`;
-
-            document.getElementById('workspace').appendChild(newEmojiElement);
-            newEmojiElement.addEventListener('dragstart', dragStart);
-
-            const combinedEmoji = combineEmojis(draggedEmoji, draggedEmoji); // Replace with actual combination logic
-            if (!discoveries.includes(combinedEmoji)) {
-                discoveries.push(combinedEmoji);
-                alert(`You discovered a new emoji: ${combinedEmoji}`);
-            }
+            const newEmojiBox = document.createElement('div');
+            newEmojiBox.className = 'emoji-box';
+            newEmojiBox.textContent = draggedEmoji;
+            newEmojiBox.style.left = `${event.clientX - 25}px`;
+            newEmojiBox.style.top = `${event.clientY - 25}px`;
+            newEmojiBox.setAttribute('draggable', 'true');
+            newEmojiBox.addEventListener('dragstart', dragStart);
+            document.getElementById('workspace').appendChild(newEmojiBox);
         });
 
         function dragStart(event) {
@@ -212,7 +294,9 @@
             const emojiName = document.getElementById('dev-emoji-name').value;
             if (emojiName && !inventory.includes(emojiName)) {
                 inventory.push(emojiName);
+                localStorage.setItem('inventory', JSON.stringify(inventory));
                 alert(`Emoji ${emojiName} created and added to inventory!`);
+                updateInventoryDisplay();
             }
         }
 
@@ -228,6 +312,31 @@
                 alert(`${search} has not been discovered yet.`);
             }
         }
+
+        function openAuthModal() {
+            document.getElementById('auth-modal').style.display = 'block';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function authenticateUser() {
+            const username = document.getElementById('auth-username').value;
+            const password = document.getElementById('auth-password').value;
+            const captcha = document.getElementById('auth-captcha').value;
+
+            if (!username || !password || captcha !== '1234') {
+                alert('Invalid input or CAPTCHA');
+                return;
+            }
+
+            localStorage.setItem('currentUser', username);
+            alert(`Welcome, ${username}!`);
+            closeAuthModal();
+        }
+
+        updateInventoryDisplay();
     </script>
 </body>
 </html>
