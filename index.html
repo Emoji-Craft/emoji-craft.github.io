@@ -11,7 +11,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             height: 100vh;
             background-color: #f0f0f0;
         }
@@ -19,6 +19,8 @@
         header {
             display: flex;
             align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
             justify-content: space-between;
             width: 100%;
             padding: 10px 20px;
@@ -36,45 +38,22 @@
             padding: 5px 10px;
             cursor: pointer;
         }
-
         .inventory {
             position: absolute;
             right: 10px;
+            top: 50px;
             top: 70px;
             width: 150px;
             height: 300px;
             overflow-y: auto;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .inventory h2 {
-            font-size: 1rem;
-            margin: 0 0 10px;
-        }
-
-        .inventory .emoji {
-            font-size: 2rem;
-            cursor: grab;
-            margin: 5px 0;
-        }
-
-        .workspace {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 300px;
-            width: 80%;
-            border: 2px dashed #ccc;
-            background: white;
-            margin-top: 20px;
+@@ -64,9 +73,17 @@
             position: relative;
         }
 
+        .workspace .emoji {
         .workspace .emoji-box {
             position: absolute;
+            font-size: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -87,53 +66,10 @@
         }
 
         .settings {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .settings button {
-            display: block;
-            margin: 5px 0;
-            padding: 5px;
-            width: 100%;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        #dev-tools-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        #dev-tools-popup input {
-            margin-bottom: 10px;
-            padding: 5px;
-            width: 100%;
-        }
-
-        #dev-tools-popup button {
-            width: 100%;
-        }
-
-        #dev-tools-popup .close-button {
-            background: red;
+@@ -116,11 +133,60 @@
             color: white;
             margin-top: 10px;
         }
-
         footer {
             position: absolute;
             bottom: 0;
@@ -143,16 +79,13 @@
             background: #fff;
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
-
         footer a {
             text-decoration: none;
             color: #007BFF;
         }
-
         footer a:hover {
             text-decoration: underline;
         }
-
         #auth-modal {
             display: none;
             position: fixed;
@@ -165,17 +98,14 @@
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
         #auth-modal input {
             margin-bottom: 10px;
             padding: 5px;
             width: 100%;
         }
-
         #auth-modal button {
             width: 100%;
         }
-
         #auth-modal .close-button {
             background: red;
             color: white;
@@ -190,27 +120,7 @@
     </header>
 
     <div class="workspace" id="workspace">
-        <p>Drag and drop emojis here to combine them!</p>
-    </div>
-
-    <div class="inventory" id="inventory">
-        <h2>Inventory</h2>
-        <div class="emoji" draggable="true">💀</div>
-        <div class="emoji" draggable="true">😂</div>
-        <div class="emoji" draggable="true">😭</div>
-    </div>
-
-    <div class="settings">
-        <button onclick="openDevTools()">Dev Tools</button>
-        <button onclick="viewDiscoveries()">Discoveries</button>
-        <button onclick="emojiLookup()">Emoji Lookup</button>
-    </div>
-
-    <div id="dev-tools-popup">
-        <input type="password" id="dev-passcode" placeholder="Enter passcode">
-        <button onclick="accessDevTools()">Submit</button>
-        <input type="text" id="dev-emoji-name" placeholder="Enter emoji name" style="display: none;">
-        <button onclick="createEmoji()" style="display: none;">Create Emoji</button>
+@@ -148,9 +214,34 @@
         <button class="close-button" onclick="closeDevTools()">Close</button>
     </div>
 
@@ -221,15 +131,14 @@
         <button onclick="authenticateUser()">Submit</button>
         <button class="close-button" onclick="closeAuthModal()">Close</button>
     </div>
-
     <footer>
         <a href="https://emoji-craft.github.io/about.html">About</a>
     </footer>
-
     <script>
+        const inventory = ["💀", "😂", "😭"];
+        const discoveries = [];
         const inventory = JSON.parse(localStorage.getItem('inventory')) || ["💀", "😂", "😭"];
         const discoveries = JSON.parse(localStorage.getItem('discoveries')) || [];
-
         function updateInventoryDisplay() {
             const inventoryElement = document.getElementById('inventory');
             inventoryElement.innerHTML = '<h2>Inventory</h2>';
@@ -245,15 +154,24 @@
 
         document.querySelectorAll('.emoji').forEach(emoji => {
             emoji.addEventListener('dragstart', dragStart);
-        });
-
-        document.getElementById('workspace').addEventListener('dragover', event => {
-            event.preventDefault();
-        });
-
+@@ -163,23 +254,14 @@
         document.getElementById('workspace').addEventListener('drop', event => {
             event.preventDefault();
             const draggedEmoji = event.dataTransfer.getData('text');
+            const dropX = event.clientX;
+            const dropY = event.clientY;
+            const newEmojiElement = document.createElement('div');
+            newEmojiElement.textContent = draggedEmoji;
+            newEmojiElement.classList.add('emoji');
+            newEmojiElement.style.left = `${dropX}px`;
+            newEmojiElement.style.top = `${dropY}px`;
+            document.getElementById('workspace').appendChild(newEmojiElement);
+            newEmojiElement.addEventListener('dragstart', dragStart);
+            const combinedEmoji = combineEmojis(draggedEmoji, draggedEmoji); // Replace with actual combination logic
+            if (!discoveries.includes(combinedEmoji)) {
+                discoveries.push(combinedEmoji);
+                alert(`You discovered a new emoji: ${combinedEmoji}`);
+            }
             const newEmojiBox = document.createElement('div');
             newEmojiBox.className = 'emoji-box';
             newEmojiBox.textContent = draggedEmoji;
@@ -261,67 +179,43 @@
             newEmojiBox.style.top = `${event.clientY - 25}px`;
             newEmojiBox.setAttribute('draggable', 'true');
             newEmojiBox.addEventListener('dragstart', dragStart);
-            newEmojiBox.addEventListener('dragend', checkCombination);
             document.getElementById('workspace').appendChild(newEmojiBox);
         });
 
         function dragStart(event) {
-            event.dataTransfer.setData('text', event.target.textContent);
-        }
-
-        function checkCombination() {
-            const workspace = document.getElementById('workspace');
-            const emojiBoxes = workspace.querySelectorAll('.emoji-box');
-            if (emojiBoxes.length >= 2) {
-                const emoji1 = emojiBoxes[0].textContent;
-                const emoji2 = emojiBoxes[1].textContent;
-                const combined = combineEmojis(emoji1, emoji2);
-
-                if (!discoveries.includes(combined)) {
-                    discoveries.push(combined);
-                    inventory.push(combined);
-                    localStorage.setItem('inventory', JSON.stringify(inventory));
-                    localStorage.setItem('discoveries', JSON.stringify(discoveries));
-                    alert(`New discovery: ${combined}`);
-                }
-
-                emojiBoxes.forEach(box => box.remove());
-                updateInventoryDisplay();
-            }
-        }
-
-        function combineEmojis(emoji1, emoji2) {
-            if ((emoji1 === '💀' && emoji2 === '😭') || (emoji1 === '😭' && emoji2 === '💀')) {
-                return '💀😭'; // Crying Skull Emoji
-            } else if ((emoji1 === '💀' && emoji2 === '😂') || (emoji1 === '😂' && emoji2 === '💀')) {
-                return '💀😂'; // Laughing Skull Emoji
-            } else {
-                return emoji1 + emoji2; // Default combination
-            }
-        }
-
-        function openDevTools() {
-            document.getElementById('dev-tools-popup').style.display = 'block';
-        }
-
-        function closeDevTools() {
-            document.getElementById('dev-tools-popup').style.display = 'none';
-        }
-
-        function accessDevTools() {
-            const passcode = document.getElementById('dev-passcode').value;
-            if (passcode === 'DEVCODE--EMJCRT') {
-                document.getElementById('dev-emoji-name').style.display = 'block';
-                document.querySelector('#dev-tools-popup button:nth-last-of-type(2)').style.display = 'block';
-            } else {
-                alert('Incorrect passcode');
-            }
-        }
-
-        function createEmoji() {
+@@ -212,7 +294,9 @@
             const emojiName = document.getElementById('dev-emoji-name').value;
             if (emojiName && !inventory.includes(emojiName)) {
                 inventory.push(emojiName);
                 localStorage.setItem('inventory', JSON.stringify(inventory));
-                alert(`Emoji ${emojiName} created and added
+                alert(`Emoji ${emojiName} created and added to inventory!`);
+                updateInventoryDisplay();
+            }
+        }
 
+@@ -228,6 +312,31 @@
+                alert(`${search} has not been discovered yet.`);
+            }
+        }
+        function openAuthModal() {
+            document.getElementById('auth-modal').style.display = 'block';
+        }
+        function closeAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+        function authenticateUser() {
+            const username = document.getElementById('auth-username').value;
+            const password = document.getElementById('auth-password').value;
+            const captcha = document.getElementById('auth-captcha').value;
+            if (!username || !password || captcha !== '1234') {
+                alert('Invalid input or CAPTCHA');
+                return;
+            }
+            localStorage.setItem('currentUser', username);
+            alert(`Welcome, ${username}!`);
+            closeAuthModal();
+        }
+        updateInventoryDisplay();
+    </script>
+</body>
+</html>
